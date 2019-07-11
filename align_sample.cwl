@@ -32,6 +32,10 @@ outputs:
     outputSource:
       - gatk_markduplicatesgatk/output_md_metrics
     type: File
+  - id: output_merge_sort_bam
+    outputSource:
+      - samtools_merge/output_file
+    type: File
   - id: output_md_bam
     outputSource:
       - gatk_markduplicatesgatk/output_md_bam
