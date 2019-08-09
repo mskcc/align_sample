@@ -12,12 +12,10 @@ inputs:
       - .pac
       - .sa
       - .fai
-  - id: read_pair
-    type:
-      type: array
-      items:
-        items: File
-        type: array
+  - id: r1
+    type: 'File[]'
+  - id: r2
+    type: 'File[]'
   - id: sample_id
     type: string
   - id: lane_id
@@ -33,6 +31,10 @@ outputs:
   - id: output_md_metrics
     outputSource:
       - gatk_markduplicatesgatk/output_md_metrics
+    type: File
+  - id: output_merge_sort_bam
+    outputSource:
+      - samtools_merge/output_file
     type: File
   - id: output_md_bam
     outputSource:
@@ -50,11 +52,14 @@ steps:
     run: command_line_tools/samtools-merge_1.9/samtools-merge_1.9.cwl
   - id: bwa_sort
     in:
+      - id: r1
+        source: r1
+      - id: r2
+        source: r2 
       - id: reference_sequence
         source: reference_sequence
       - id: read_pair
-        source:
-          - read_pair
+        valueFrom: ${ var data = []; data.push(inputs.r1); data.push(inputs.r2); return data; } 
       - id: sample_id
         source: sample_id
       - id: lane_id
@@ -66,7 +71,8 @@ steps:
     run: align_sort_bam/align_sort_bam.cwl
     label: bwa_sort
     scatter:
-      - read_pair
+      - r1
+      - r2
       - lane_id
     scatterMethod: dotproduct
   - id: gatk_markduplicatesgatk
@@ -82,3 +88,5 @@ steps:
 requirements:
   - class: SubworkflowFeatureRequirement
   - class: ScatterFeatureRequirement
+  - class: InlineJavascriptRequirement
+  - class: StepInputExpressionRequirement
