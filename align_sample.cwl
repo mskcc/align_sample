@@ -42,6 +42,16 @@ outputs:
     type: File
 
 steps:
+  - id: group_reads
+    in: 
+      - id: r1
+        source: r1
+      - id: r2
+        source: r2
+    out:
+      - id: output
+    run: joinr1r2.cwl
+
   - id: samtools_merge
     in:
       - id: input_bams
@@ -59,7 +69,8 @@ steps:
       - id: reference_sequence
         source: reference_sequence
       - id: read_pair
-        valueFrom: ${ var data = []; data.push(inputs.r1); data.push(inputs.r2); return data; } 
+        source:
+         - group_reads/output
       - id: sample_id
         source: sample_id
       - id: lane_id
@@ -71,8 +82,7 @@ steps:
     run: align_sort_bam/align_sort_bam.cwl
     label: bwa_sort
     scatter:
-      - r1
-      - r2
+      - read_pair
       - lane_id
     scatterMethod: dotproduct
   - id: gatk_markduplicatesgatk
